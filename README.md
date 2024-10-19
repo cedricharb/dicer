@@ -1,4 +1,4 @@
-# Dice Probability Calculator
+# Dicer
 
 A web application for calculating dice roll probabilities and tracking dice sets.
 
@@ -26,27 +26,27 @@ A web application for calculating dice roll probabilities and tracking dice sets
 
 ### Installation
 
-1. Clone the repository: `git clone https://github.com/your-username/dice-probability-calculator.git
-cd dice-probability-calculator  `
+1. Clone the repository: `git clone https://github.com/your-username/dicer.git`
+   `cd dicer`
 
-2. Install dependencies: `npm install  `
+2. Install dependencies: `npm install`
 
 3. Set up environment variables:
    Rename `.env.example` to `.env.local` and update the following: `NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
-NEXT_PUBLIC_SUPABASE_ANON_KEY=[INSERT SUPABASE PROJECT API ANON KEY]  `
+NEXT_PUBLIC_SUPABASE_ANON_KEY=[INSERT SUPABASE PROJECT API ANON KEY]`
 
-4. Run the development server: `npm run dev  `
+4. Run the development server: `npm run dev`
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
+5. Open [http://localhost:3000](http://localhost:3000) in your browser to see Dicer in action.
 
 ## Deployment
 
-This project can be easily deployed to Vercel. For other hosting options, please refer to the Next.js deployment documentation.
+Dicer can be easily deployed to Vercel. For other hosting options, please refer to the Next.js deployment documentation.
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions to Dicer are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+Dicer is licensed under the [MIT License](LICENSE).
