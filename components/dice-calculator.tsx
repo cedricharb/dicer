@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { updateDiceRolls } from "@/app/actions";
 import { Button } from "@/components/ui/button";
+import { Plus, Minus } from "lucide-react";
 import debounce from "lodash/debounce";
 
 interface Dice {
@@ -39,7 +40,7 @@ const DiceInput = ({
 }: {
   side: string | number;
   value: string | number; // Changed from just number to string | number
-  probability: string | number;
+  probability: number;
   onChange: (value: string) => void;
   onClick: () => void;
 }) => {
@@ -58,9 +59,7 @@ const DiceInput = ({
       <Button variant="outline" size="sm" onClick={onClick}>
         Select
       </Button>
-      <span className="text-sm">
-        {(parseFloat(probability as string) * 100).toFixed(2)}%
-      </span>
+      <span className="text-sm">{(probability * 100).toFixed(2)}%</span>
     </div>
   );
 };
@@ -165,7 +164,7 @@ const DiceCard = ({
             probability={
               typeof orderedProbabilities[i] === "number"
                 ? orderedProbabilities[i]
-                : parseFloat(orderedProbabilities[i] as string) || 0
+                : 0
             } // Ensure it's a number
             onChange={(value) =>
               onFaceInputChange(
