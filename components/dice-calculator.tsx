@@ -39,30 +39,58 @@ const DiceInput = ({
   onClick,
 }: {
   side: string | number;
-  value: string | number; // Changed from just number to string | number
+  value: number;
   probability: number;
   onChange: (value: string) => void;
   onClick: () => void;
-}) => {
-  // Convert value to string when passing it to the Input component
-  const inputValue = typeof value === "number" ? value.toString() : value;
-
-  return (
-    <div className="flex items-center space-x-2 mb-2">
-      <Label className="w-8">{side}</Label>
+}) => (
+  <div className="flex items-center gap-2 mb-2 w-full">
+    <Label className="cursor-pointer w-8 text-right" onClick={onClick}>
+      {side}:
+    </Label>
+    <div className="relative flex-1">
       <Input
-        type="number"
-        value={inputValue}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-16"
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        value={value === 0 ? "0" : value.toString()}
+        className="w-full relative z-10"
+        style={{
+          background: `linear-gradient(to right, rgba(59, 130, 246, 0.5) ${probability}%, transparent ${probability}%)`,
+        }}
+        onChange={(e) => {
+          const newValue = e.target.value;
+          if (value === 0 && newValue !== "0") {
+            onChange(newValue.replace(/^0+/, ""));
+          } else {
+            onChange(newValue === "" ? "0" : newValue.replace(/^0+/, ""));
+          }
+        }}
       />
-      <Button variant="outline" size="sm" onClick={onClick}>
-        Select
-      </Button>
-      <span className="text-sm">{(probability * 100).toFixed(2)}%</span>
     </div>
-  );
-};
+    <div className="flex flex-col">
+      <Button
+        size="sm"
+        variant="outline"
+        className="px-2 py-0 h-6"
+        onClick={() => onChange((value + 1).toString())}
+      >
+        <Plus size={12} />
+      </Button>
+      <Button
+        size="sm"
+        variant="outline"
+        className="px-2 py-0 h-6"
+        onClick={() => onChange(Math.max(0, value - 1).toString())}
+      >
+        <Minus size={12} />
+      </Button>
+    </div>
+    <span className="text-sm text-muted-foreground w-12 text-right">
+      {probability.toFixed(2)}%
+    </span>
+  </div>
+);
 
 const DiceCard = ({
   diceType,
