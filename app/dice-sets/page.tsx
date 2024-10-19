@@ -1,5 +1,6 @@
-import { DiceSetSelector } from "@/components/dice-set-selector";
+import { DiceSetSelector } from "@/src/components/dice-set-selector";
 import { fetchDiceSets } from "@/app/actions";
+import { DiceSet } from "@/src/types/dice";
 
 export default async function DiceSetsPage() {
   const initialDiceSets = await fetchDiceSets();

@@ -1,35 +1,26 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/src/components/ui/card";
+import { Input } from "@/src/components/ui/input";
+import { Label } from "@/src/components/ui/label";
 import { updateDiceRolls } from "@/app/actions";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/src/components/ui/button";
 import { Plus, Minus } from "lucide-react";
 import debounce from "lodash/debounce";
-
-interface Dice {
-  id: string;
-  sides: number | "10-decimal";
-  rolls: number[];
-}
-
-type DiceType = number | "10-decimal";
-
-interface DiceRolls {
-  [key: string]: number[];
-}
-
-interface SelectedProbabilities {
-  [key: string]: { probability: number; side: string | number } | undefined;
-}
-
-interface DiceRoll {
-  diceType: string;
-  side: number;
-  count: number;
-}
+import {
+  Dice,
+  DiceSet,
+  DiceType,
+  DiceRolls,
+  SelectedProbabilities,
+  DiceRoll,
+} from "@/src/types/dice";
 
 const DiceInput = ({
   side,
@@ -38,7 +29,7 @@ const DiceInput = ({
   onChange,
   onClick,
 }: {
-  side: string | number;
+  side: number;
   value: number;
   probability: number;
   onChange: (value: string) => void;
@@ -115,7 +106,7 @@ const DiceCard = ({
   const totalRolls = rolls.reduce((sum, count) => sum + count, 0);
   const probabilities = calculateProbabilities();
 
-  const titleText = `D${diceType === "10-decimal" ? "10 (Percentile)" : diceType} Rolls (Total: ${totalRolls})`;
+  const titleText = `D${diceType === "PERCENTILE" ? "10 (Percentile)" : diceType} Rolls (Total: ${totalRolls})`;
   const titleRef = useRef<HTMLHeadingElement>(null);
   const [fontSize, setFontSize] = useState(24); // Start with a large font size
 
@@ -146,24 +137,24 @@ const DiceCard = ({
   }, [titleText]);
 
   // Function to reorder sides for percentile die
-  const reorderSides = (sides: (string | number)[]) => {
-    if (diceType === "10-decimal") {
+  const reorderSides = (sides: string[]) => {
+    if (diceType === "PERCENTILE") {
       return [...sides.slice(1), sides[0]];
     }
     return sides;
   };
 
-  const orderedSides = reorderSides(
+  const orderedSides: string[] = reorderSides(
     rolls.map((_, i) =>
-      diceType === "10-decimal"
+      diceType === "PERCENTILE"
         ? i === 0
           ? "00"
           : `${i}0`
-        : diceType === 10
+        : diceType === "D10"
           ? i === 9
             ? "0"
             : `${i + 1}`
-          : i + 1
+          : `${i + 1}`
     )
   );
 
@@ -221,15 +212,16 @@ export function DiceCalculatorComponent({
   diceSetId,
 }: {
   initialDice: Dice[];
-  diceSetId: string;
+  diceSetId: DiceSet["id"];
 }) {
   const diceTypes = useMemo<DiceType[]>(
-    () => initialDice.map((dice) => dice.sides),
+    () => initialDice.map((dice) => dice.type),
     [initialDice]
   );
   const [rolls, setRolls] = useState<DiceRolls>(
     initialDice.reduce((acc, dice) => {
-      acc[dice.sides.toString()] = dice.rolls;
+      // Assuming die_sides is an array of DieSide objects
+      acc[dice.type] = dice.die_sides.map((side) => side.rolled_count || 0);
       return acc;
     }, {} as DiceRolls)
   );
@@ -261,19 +253,18 @@ export function DiceCalculatorComponent({
   );
 
   const handleFaceInputChange = useCallback(
-    (sides: DiceType, face: number, value: string) => {
+    (diceType: DiceType, face: number, value: string) => {
       const count = value === "" ? 0 : parseInt(value, 10);
       if (isNaN(count) || count < 0) {
-        return; // Don't update if the value is invalid or negative
+        return;
       }
 
       setRolls((prevRolls) => {
         const newRolls = { ...prevRolls };
-        newRolls[sides.toString()][face - 1] = count;
+        newRolls[diceType][face - 1] = count;
         return newRolls;
       });
 
-      // Update the database after a short delay
       const diceType = sides === "10-decimal" ? "PERCENTILE" : `D${sides}`;
       debouncedUpdateDiceRolls([
         {

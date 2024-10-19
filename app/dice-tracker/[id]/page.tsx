@@ -1,6 +1,7 @@
 import { fetchDiceSet } from "@/app/actions";
-import { DiceCalculatorComponent } from "@/components/dice-calculator";
+import { DiceCalculatorComponent } from "@/src/components/dice-calculator";
 import { redirect } from "next/navigation";
+import { DiceSet, Dice } from "@/src/types/dice";
 
 export default async function DiceTrackerPage({
   params,
@@ -13,7 +14,7 @@ export default async function DiceTrackerPage({
     redirect("/dice-sets");
   }
 
-  const { diceSet, dice } = result;
+  const { diceSet, dice }: { diceSet: DiceSet; dice: Dice[] } = result;
 
   return (
     <div className="flex-1 w-full flex flex-col gap-20 items-center">
