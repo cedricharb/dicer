@@ -126,7 +126,7 @@ export const signOutAction = async () => {
   return redirect("/sign-in");
 };
 
-export async function fetchDiceSets() {
+export async function fetchDiceSets(): Promise<DiceSet[]> {
   const supabase = createClient();
   const {
     data: { user },
@@ -138,7 +138,7 @@ export async function fetchDiceSets() {
 
   const { data, error } = await supabase
     .from("dice_sets")
-    .select("id, name")
+    .select("*")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -146,10 +146,10 @@ export async function fetchDiceSets() {
     throw error;
   }
 
-  return data as DiceSet[] || [];
+  return data || [];
 }
 
-export async function addDiceSet(formData: FormData) {
+export async function addDiceSet(formData: FormData): Promise<DiceSet> {
   const supabase = createClient();
   const {
     data: { user },
@@ -249,12 +249,18 @@ export async function updateDiceRolls(diceSetId: DiceSet['id'], rolls: DiceRoll[
       if (!die) {
         throw new Error(`Die not found for type: ${roll.diceType}`);
       }
+      let side = roll.side;
+      if (roll.diceType === 'PERCENTILE' && roll.side === 100) {
+        side = 0;
+      }
       return {
         die_id: die.id,
-        side: roll.side,
+        side: side,
         rolled_count: roll.count,
       };
     });
+
+    console.log("Updates to be applied:", updates);
 
     for (const update of updates) {
       const { error: updateError } = await supabase
@@ -271,6 +277,7 @@ export async function updateDiceRolls(diceSetId: DiceSet['id'], rolls: DiceRoll[
 
     return { success: true };
   } catch (error) {
+    console.log(error);
     if (error instanceof Error) {
       return { error: error.message, details: error.stack };
     } else {

@@ -1,5 +1,5 @@
 import { fetchDiceSet } from "@/app/actions";
-import { DiceCalculatorComponent } from "@/src/components/dice-calculator";
+import { DiceCalculatorComponent } from "@/components/dice-calculator";
 import { redirect } from "next/navigation";
 import { DiceSet, Dice } from "@/src/types/dice";
 
