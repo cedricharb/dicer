@@ -5,6 +5,7 @@ import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { DiceSet, Dice, DiceRoll } from '@/src/types/dice';
 
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
@@ -125,7 +126,7 @@ export const signOutAction = async () => {
   return redirect("/sign-in");
 };
 
-export async function fetchDiceSets() {
+export async function fetchDiceSets(): Promise<DiceSet[]> {
   const supabase = createClient();
   const {
     data: { user },
@@ -137,7 +138,7 @@ export async function fetchDiceSets() {
 
   const { data, error } = await supabase
     .from("dice_sets")
-    .select("id, name")
+    .select("*")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -148,7 +149,7 @@ export async function fetchDiceSets() {
   return data || [];
 }
 
-export async function addDiceSet(formData: FormData) {
+export async function addDiceSet(formData: FormData): Promise<DiceSet> {
   const supabase = createClient();
   const {
     data: { user },
@@ -179,7 +180,7 @@ export async function addDiceSet(formData: FormData) {
   return data[0];
 }
 
-export async function fetchDiceSet(id: string) {
+export async function fetchDiceSet(id: string): Promise<{ diceSet: DiceSet; dice: Dice[] } | null> {
   const supabase = createClient();
   const {
     data: { user },
@@ -191,7 +192,7 @@ export async function fetchDiceSet(id: string) {
 
   const { data: diceSet, error: diceSetError } = await supabase
     .from("dice_sets")
-    .select("id, name")
+    .select("*")
     .eq("id", id)
     .eq("user_id", user.id)
     .single();
@@ -205,54 +206,20 @@ export async function fetchDiceSet(id: string) {
 
   const { data: dice, error: diceError } = await supabase
     .from("dice")
-    .select(
-      `
-      id,
-      sides,
-      type,
-      die_sides (
-        side,
-        rolled_count
-      )
-    `
-    )
+    .select(`
+      *,
+      die_sides (*)
+    `)
     .eq("dice_set_id", id);
 
   if (diceError) {
     throw diceError;
   }
 
-  const formattedDice = dice.map((die) => {
-    if (die.type === "PERCENTILE") {
-      return {
-        id: die.id,
-        sides: "10-decimal",
-        rolls: die.die_sides.map((side) => Number(side.rolled_count) || 0),
-      };
-    } else {
-      return {
-        id: die.id,
-        sides: die.sides,
-        rolls: die.die_sides.reduce((acc, { side, rolled_count }) => {
-          acc[side - 1] = Number(rolled_count) || 0;
-          return acc;
-        }, Array(die.sides).fill(0)),
-      };
-    }
-  });
-
-  revalidatePath(`/dice-tracker/${id}`);
-
-  return { diceSet, dice: formattedDice };
+  return { diceSet, dice };
 }
 
-interface DiceRoll {
-  diceType: string;
-  side: number;
-  count: number;
-}
-
-export async function updateDiceRolls(diceSetId: string, rolls: DiceRoll[]) {
+export async function updateDiceRolls(diceSetId: DiceSet['id'], rolls: DiceRoll[]) {
   const supabase = createClient();
 
   try {
@@ -282,12 +249,18 @@ export async function updateDiceRolls(diceSetId: string, rolls: DiceRoll[]) {
       if (!die) {
         throw new Error(`Die not found for type: ${roll.diceType}`);
       }
+      let side = roll.side;
+      if (roll.diceType === 'PERCENTILE' && roll.side === 100) {
+        side = 0;
+      }
       return {
         die_id: die.id,
-        side: roll.side,
+        side: side,
         rolled_count: roll.count,
       };
     });
+
+    console.log("Updates to be applied:", updates);
 
     for (const update of updates) {
       const { error: updateError } = await supabase
@@ -304,6 +277,7 @@ export async function updateDiceRolls(diceSetId: string, rolls: DiceRoll[]) {
 
     return { success: true };
   } catch (error) {
+    console.log(error);
     if (error instanceof Error) {
       return { error: error.message, details: error.stack };
     } else {

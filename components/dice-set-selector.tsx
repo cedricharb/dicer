@@ -7,11 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { addDiceSet } from "@/app/actions";
 import { useFormStatus } from "react-dom";
-
-interface DiceSet {
-  id: number;
-  name: string;
-}
+import { DiceSet } from "@/src/types/dice";
 
 function AddDiceSetForm({
   onAddDiceSet,
@@ -55,7 +51,7 @@ export function DiceSetSelector({
     setDiceSets((prevSets) => [...prevSets, newSet]);
   };
 
-  const selectDiceSet = (id: number) => {
+  const selectDiceSet = (id: string) => {
     router.push(`/dice-tracker/${id}`);
   };
 
