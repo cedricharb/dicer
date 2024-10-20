@@ -9,6 +9,8 @@ interface DiceInputProps {
   onIncrement: () => void;
   onDecrement: () => void;
   onClick: () => void;
+  isSelected: boolean;
+  cumulativeProbability?: number;
 }
 
 export const DiceInput = ({
@@ -19,9 +21,16 @@ export const DiceInput = ({
   onIncrement,
   onDecrement,
   onClick,
+  isSelected,
+  cumulativeProbability,
 }: DiceInputProps) => (
   <div className="flex items-center gap-2 mb-2 w-full">
-    <Label className="cursor-pointer w-8 text-right" onClick={onClick}>
+    <Label
+      className={`cursor-pointer w-8 text-right ${
+        isSelected ? "font-bold" : ""
+      }`}
+      onClick={onClick}
+    >
       {side}:
     </Label>
     <div className="relative flex-1">
@@ -58,8 +67,13 @@ export const DiceInput = ({
         -
       </button>
     </div>
-    <span className="text-sm text-muted-foreground w-12 text-right">
+    <span className="text-sm text-muted-foreground w-20 text-right">
       {probability.toFixed(2)}%
+      {isSelected && cumulativeProbability !== undefined && (
+        <span className="block text-xs">
+          Cumulative: {cumulativeProbability.toFixed(2)}%
+        </span>
+      )}
     </span>
   </div>
 );

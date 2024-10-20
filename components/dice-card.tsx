@@ -57,7 +57,7 @@ export const DiceCard: React.FC<DiceCardProps> = ({
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle>{diceType} Dice</CardTitle>
+        <CardTitle className="flex justify-center">{`${diceType} Dice (${totalRolls} total rolls)`}</CardTitle>
       </CardHeader>
       <CardContent>
         {rolls.map((count, index) => {
@@ -74,6 +74,12 @@ export const DiceCard: React.FC<DiceCardProps> = ({
               onIncrement={() => handleIncrement(index)}
               onDecrement={() => handleDecrement(index)}
               onClick={() => onSideClick(index)}
+              isSelected={selectedProbability?.side === side}
+              cumulativeProbability={
+                selectedProbability?.side === side
+                  ? selectedProbability.probability
+                  : undefined
+              }
             />
           );
         })}
